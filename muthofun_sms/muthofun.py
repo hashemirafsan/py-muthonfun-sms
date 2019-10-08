@@ -14,22 +14,26 @@ class Muthofun(AbstractApi):
         super().__init__()
 
 
-    def set_base_url(self):
+    def _set_base_url(self):
         return 'http://clients.muthofun.com:8901/'
  
-    def set_sending_url(self):
+    def _set_sending_url(self):
         return 'esmsgw/sendsms.jsp'
 
     def message(self, message = '', to = None):
-        self.sms.append(message)
+        self.sms = message
+        # self.sms.append(message)
         return self
     
     def to(self, to):
-        pass
+        self.mobiles = to
+        # self.mobiles.append(to)
+        
+        return self
 
     def __get_parameters(self, sms, mobiles):
         self._sending_parameters = {
-            'username' : self.config['username'],
+            'user' : self.config['username'],
             'password': self.config['password'],
             'sms' : sms,
             'mobiles' : mobiles,
@@ -55,12 +59,15 @@ class Muthofun(AbstractApi):
 
     def get_config(self):
         return self.config
-
+    
+    def send(self):
+        self.__get_parameters(self.sms, self.mobiles)
+        return self._send_to_server(self._sending_parameters)
 
 
 r = Muthofun({
-    'username': 'hashemirafsan',
-    'password': 'rafsan'
+    'username': 'hashemirafsa',
+    'password': '01625903501RrR'
 })
 
-print(r.get_config())
+print(r.message('something').to('01977408297').send())
