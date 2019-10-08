@@ -10,6 +10,7 @@ class AbstractApi(ABC):
         self._base_url = self._set_base_url()
         self._sending_url = self._set_sending_url()
         self._default_headers = self._set_default_headers()
+        self._client = requests
 
     @abstractmethod
     def _set_base_url(self):
@@ -30,7 +31,7 @@ class AbstractApi(ABC):
 
         return False     
 
-    def _query(query = {}):
+    def _set_query(self, query):
         if isinstance(query, dict):
             self._parameters['query'] = query
 
@@ -38,16 +39,9 @@ class AbstractApi(ABC):
         
         return False
     
-    def _send_to_server(self, parameters):
-        r = requests.get(self._base_url + self._sending_url, 
-        auth=('hashemirafsa', 'rafsanJ1#'), 
-        params={
-            'user': 'hashemirafsa', 
-            'password': 'rafsanJ1#', 
-            'sms': 'I Love you Shipu Vai from python package', 
-            'mobiles': '8801707722669', 
-            'unicode': 1,
-            'senderid': 'Aruhat'
-        }
+    def _send_to_server(self):
+        
+        r = requests.get(self._base_url + self._sending_url,  
+        params=self._parameters
         )
         return r.text

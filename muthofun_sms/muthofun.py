@@ -1,4 +1,4 @@
-from abstract_api import AbstractApi
+from .abstract_api import AbstractApi
 
 class Muthofun(AbstractApi):
 
@@ -13,32 +13,18 @@ class Muthofun(AbstractApi):
 
         super().__init__()
 
-
-    def _set_base_url(self):
-        return 'http://clients.muthofun.com:8901/'
- 
-    def _set_sending_url(self):
-        return 'esmsgw/sendsms.jsp'
+    # All Public methonds
 
     def message(self, message = '', to = None):
-        self.sms = message
-        # self.sms.append(message)
+        # self.sms = message
+        self.sms.append(message)
+        if to is not None:
+            self.mobiles.append(to)
+
         return self
     
-    def to(self, to):
-        self.mobiles = to
-        # self.mobiles.append(to)
-        
-        return self
-
-    def __get_parameters(self, sms, mobiles):
-        self._sending_parameters = {
-            'user' : self.config['username'],
-            'password': self.config['password'],
-            'sms' : sms,
-            'mobiles' : mobiles,
-            'unicode': 1
-        }
+    def to(self, to = ''):
+        self.mobiles.append(to)
         
         return self
 
@@ -56,18 +42,63 @@ class Muthofun(AbstractApi):
         self.template = True
 
         return self
-
-    def get_config(self):
-        return self.config
     
-    def send(self):
-        self.__get_parameters(self.sms, self.mobiles)
-        return self._send_to_server(self._sending_parameters)
+    def send(self, opts = []):
+        if len(opts) > 0:
+            self.__set_message_and_mobiles(opts)
+            pass
 
+        self.__distribute_sms()
 
-r = Muthofun({
-    'username': 'hashemirafsa',
-    'password': '01625903501RrR'
-})
+    # All Protected Methods 
 
-print(r.message('something').to('01977408297').send())
+    def _set_base_url(self):
+        return 'http://clients.muthofun.com:8901/'
+ 
+    def _set_sending_url(self):
+        return 'esmsgw/sendsms.jsp'
+
+    # All Private Methods 
+
+    def __set_parameters(self, sms, mobile):
+        self._sending_parameters = {
+            'user' : self.config['username'],
+            'password': self.config['password'],
+            'sms' : sms,
+            'mobiles' : mobile,
+            'unicode': 1
+        }
+        
+        return self
+
+    def __distribute_sms(self):
+        total_sms = len(self.sms)
+        total_receiver = len(self.mobiles)
+
+        i = 0
+        while i < total_sms:
+            if isinstance(self.mobiles[i], list):
+                self.__distribute_to_many(self.sms[i], self.mobiles[i])
+            else:
+                self.__distribute_to_one(self.sms[i], self.mobiles[i])    
+            i += 1
+        pass
+
+    def __distribute_to_one(self, sms, to):
+        self.__set_parameters(sms, to)
+        self._set_query(self._sending_parameters)._send_to_server()
+        pass
+
+    def __distribute_to_many(self, sms, to):
+        for receiver in to:
+            self.__distribute_to_one(sms, receiver)
+        pass
+
+    def __set_message_and_mobiles(self, opts = []):
+
+        for item in opts:
+            if isinstance(item, dict):
+                self.sms.append(item['sms'])
+                self.mobiles.append(item['to'])
+            
+        pass
